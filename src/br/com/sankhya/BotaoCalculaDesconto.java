@@ -26,71 +26,73 @@ import br.com.sankhya.modelcore.MGEModelException;
 public class BotaoCalculaDesconto implements EventoProgramavelJava {
 
 	@Override
-	public void beforeInsert(PersistenceEvent persistEvent) throws Exception {
-		// TODO Auto-generated method stub
-
-	}
+	public void beforeInsert(PersistenceEvent persistEvent) throws Exception {}
 
 	@Override
 	public void beforeUpdate(PersistenceEvent persistEvent) throws Exception {
 		DynamicVO cabVO = (DynamicVO) persistEvent.getVo();
-		// DynamicVO oldValue = (DynamicVO) persistEvent.getOldVO();
-
-		// BigDecimal nunota = cabVO.asBigDecimal("NUNOTA");
-
-		BigDecimal codpremio = cabVO.asBigDecimal("AD_CODPREMIO") != null ? cabVO.asBigDecimal("AD_CODPREMIO") : null;
+		BigDecimal nunota = cabVO.asBigDecimal("NUNOTA");
+		BigDecimal codpremio = cabVO.asBigDecimal("AD_CODPREMIO") != null 
+				? cabVO.asBigDecimal("AD_CODPREMIO") : null;
 
 		if (codpremio == null)
 			return;
-
-		//boolean teste = true;
-
-		BigDecimal vlrnota = cabVO.asBigDecimal("VLRNOTA");
 
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = persistEvent.getJdbcWrapper();
 		NativeSql sql = null;
 		ResultSet rset = null;
-		BigDecimal vlrDesconto = BigDecimal.ZERO;
 
 		try {
 			hnd = JapeSession.open();
-
 			jdbc.openSession();
-
+			BigDecimal descontoPremio = BigDecimal.ZERO;
+			BigDecimal vlrdesctot = BigDecimal.ZERO;
+			BigDecimal vlrtot = BigDecimal.ZERO;
+			BigDecimal percdesc = BigDecimal.ZERO;
+			BigDecimal adVlrdesc = cabVO.asBigDecimal("AD_VLRDESC") != null 
+					? cabVO.asBigDecimal("AD_VLRDESC") : BigDecimal.ZERO;
+			
 			sql = new NativeSql(jdbc);
+			sql.appendSql("SELECT SUM(COALESCE(VLRTOT, 0)) ");
+			sql.appendSql("FROM TGFITE ");
+			sql.appendSql("WHERE NUNOTA = :NUNOTA");
 
-			jdbc.openSession();
+			sql.setNamedParameter("NUNOTA", nunota);
 
+			rset = sql.executeQuery();
+
+			if (rset.next())
+				vlrtot = rset.getBigDecimal(1);
+				
+			sql = new NativeSql(jdbc);
 			sql.appendSql("SELECT CASE WHEN PTS.TIPO = 'B' THEN PTS.VALOR ");
-			sql.appendSql("ELSE (PTS.VALOR/100) * :VLRNOTA END ");
+			sql.appendSql("ELSE (PTS.VALOR/100) * :VLRTOT END ");
 			sql.appendSql("FROM AD_TGFPTS PTS JOIN AD_TGFPRE PRM ON PTS.NIVEL = PRM.NIVEL ");
 			sql.appendSql("WHERE PRM.CODPREMIO = :CODPREMIO");
 
-			sql.setNamedParameter("VLRNOTA", vlrnota);
+			sql.setNamedParameter("VLRTOT", vlrtot);
 			sql.setNamedParameter("CODPREMIO", codpremio);
 
 			rset = sql.executeQuery();
 
 			if (rset.next())
-				vlrDesconto = rset.getBigDecimal(1);
+				descontoPremio = rset.getBigDecimal(1);
 
-			BigDecimal percdesc = vlrDesconto.divide(vlrnota, 2, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+			vlrdesctot = descontoPremio.add(adVlrdesc);
+			percdesc = vlrdesctot.divide(vlrtot, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
 
-			cabVO.setProperty("VLRDESCTOT", vlrDesconto);
-			cabVO.setProperty("PERCDESC", percdesc);
-			cabVO.setProperty("AD_DESCPREMIO", vlrDesconto);
-
-			/*ServiceContext serviceCtx = ServiceContext.getCurrent();
-			PrePersistEntityState cabState = PrePersistEntityState.build(EntityFacadeFactory.getDWFFacade(),
-					DynamicEntityNames.CABECALHO_NOTA, cabVO);
-
+			//boolean teste = true;
+			
 			/*if (teste) {
-				throw new MGEModelException("service " + serviceCtx);
-			}
+				throw new MGEModelException("desconto " + adVlrdesc + " " + percdesc + "%");
+			}*/
+			
+			cabVO.setProperty("VLRDESCTOT", vlrdesctot);
+			cabVO.setProperty("PERCDESC", percdesc);
+			cabVO.setProperty("AD_DESCPREMIO", descontoPremio);
+			cabVO.setProperty("VLRNOTA", vlrtot.subtract(vlrdesctot));
 
-			CACHelper cacHelper = new CACHelper();
-			cacHelper.incluirAlterarCabecalho(serviceCtx, cabState);*/
 		} catch (Exception e) {
 			e.printStackTrace();
 			MGEModelException.throwMe(e);
@@ -109,7 +111,8 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 	}
 
 	@Override
-	public void afterUpdate(PersistenceEvent persistEvent) throws Exception {}
+	public void afterUpdate(PersistenceEvent persistEvent) throws Exception {
+	}
 
 	@Override
 	public void afterDelete(PersistenceEvent persistEvent) throws Exception {
