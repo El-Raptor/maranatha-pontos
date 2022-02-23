@@ -1,9 +1,15 @@
 package br.com.sankhya;
 
+import br.com.sankhya.controller.ControleCalculo;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
+import br.com.sankhya.jape.core.JapeSession;
+import br.com.sankhya.jape.core.JapeSession.SessionHandle;
+import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
 import br.com.sankhya.jape.vo.DynamicVO;
+import br.com.sankhya.model.Nota;
+import br.com.sankhya.modelcore.MGEModelException;
 
 /**
  * Este programa realiza o cálculo de desconto do prêmio selecionado disponível
@@ -14,16 +20,40 @@ import br.com.sankhya.jape.vo.DynamicVO;
  * @version 0.1
  * 
  */
-public class CalculaDesconto implements EventoProgramavelJava {
+public class BotaoCalculaDesconto implements EventoProgramavelJava {
 
 	@Override
 	public void beforeInsert(PersistenceEvent persistEvent) throws Exception {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void beforeUpdate(PersistenceEvent persistEvent) throws Exception {
+		DynamicVO cabVO = (DynamicVO) persistEvent.getVo();
+
+		SessionHandle hnd = null;
+		JdbcWrapper jdbc = persistEvent.getJdbcWrapper();
+
+		try {
+			hnd = JapeSession.open();
+			jdbc.openSession();
+
+			Nota nota = new Nota(cabVO, jdbc);
+
+			if (!ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper()))
+				return;
+
+			cabVO.setProperty("VLRDESCTOT", nota.getVlrdesctot());
+			cabVO.setProperty("PERCDESC", nota.getPercdesc());
+			cabVO.setProperty("AD_DESCPREMIO", nota.getDescontoPremio());
+			cabVO.setProperty("VLRNOTA", nota.getVlrtot());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			MGEModelException.throwMe(e);
+		} finally {
+			JdbcWrapper.closeSession(jdbc);
+			JapeSession.close(hnd);
+		}
 	}
 
 	@Override
@@ -36,7 +66,6 @@ public class CalculaDesconto implements EventoProgramavelJava {
 
 	@Override
 	public void afterUpdate(PersistenceEvent persistEvent) throws Exception {
-
 	}
 
 	@Override
