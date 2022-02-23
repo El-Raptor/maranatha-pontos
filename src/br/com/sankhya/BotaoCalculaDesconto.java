@@ -1,8 +1,6 @@
 package br.com.sankhya;
 
-import java.math.BigDecimal;
-
-import br.com.sankhya.dao.NotaDAO;
+import br.com.sankhya.controller.ControleCalculo;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.core.JapeSession;
 import br.com.sankhya.jape.core.JapeSession.SessionHandle;
@@ -32,11 +30,6 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 	public void beforeUpdate(PersistenceEvent persistEvent) throws Exception {
 		DynamicVO cabVO = (DynamicVO) persistEvent.getVo();
 
-		BigDecimal codpremio = NotaDAO.getRewardId(cabVO);
-
-		if (NotaDAO.checkReward(codpremio))
-			return;
-
 		SessionHandle hnd = null;
 		JdbcWrapper jdbc = persistEvent.getJdbcWrapper();
 
@@ -44,7 +37,10 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 			hnd = JapeSession.open();
 			jdbc.openSession();
 
-			Nota nota = new Nota(cabVO, jdbc, codpremio);
+			Nota nota = new Nota(cabVO, jdbc);
+
+			if (!ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper()))
+				return;
 
 			cabVO.setProperty("VLRDESCTOT", nota.getVlrdesctot());
 			cabVO.setProperty("PERCDESC", nota.getPercdesc());
