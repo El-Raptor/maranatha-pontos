@@ -17,7 +17,8 @@ public class Nota {
 	private BigDecimal codtipoper;
 
 	public Nota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
-		buildNota(cabVO, jdbc);
+		codpremio = NotaDAO.getRewardId(cabVO);
+		codtipoper = NotaDAO.getCodtipoper(cabVO);
 	}
 
 	public BigDecimal getVlrdesctot() {
@@ -76,14 +77,12 @@ public class Nota {
 		this.codtipoper = codtipoper;
 	}
 
-	private void buildNota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
-		codpremio = NotaDAO.getRewardId(cabVO);
-		codtipoper = NotaDAO.getCodtipoper(cabVO);
-		adVlrdesc = NotaDAO.getManualDiscount(cabVO);
-		vlrtot = NotaDAO.getTotalValue(cabVO, jdbc);
-		descontoPremio = NotaDAO.getDiscount(codpremio, vlrtot, jdbc);
-		vlrdesctot = descontoPremio.add(adVlrdesc);
-		percdesc = vlrdesctot.divide(vlrtot, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+	public void buildNota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
+		setAdVlrdesc(NotaDAO.getManualDiscount(cabVO));
+		setVlrtot(NotaDAO.getTotalValue(cabVO, jdbc));
+		setDescontoPremio(NotaDAO.getDiscount(this.codpremio, vlrtot, jdbc));
+		setVlrdesctot(descontoPremio.add(adVlrdesc));
+		setPercdesc(vlrdesctot.divide(vlrtot, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
 
 		setVlrtot(vlrtot.subtract(vlrdesctot));
 	}

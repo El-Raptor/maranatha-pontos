@@ -39,7 +39,9 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 
 			Nota nota = new Nota(cabVO, jdbc);
 
-			if (!ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper()))
+			if (ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper()))
+				nota.buildNota(cabVO, jdbc);
+			else
 				return;
 
 			cabVO.setProperty("VLRDESCTOT", nota.getVlrdesctot());
