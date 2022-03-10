@@ -39,8 +39,15 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 
 			Nota nota = new Nota(cabVO, jdbc);
 
-			if (ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper()))
+			if (ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper())) {
+				/* Verifica se tem pelo menos um item selecionado antes de continuar */
+				/* a execução do código. */
+				if (!ControleCalculo.haveItemsCeck(nota.getItensQty()))
+					throw new MGEModelException("Por favor! Selecione pelo menos um item"
+							+ " antes de selecionar o prêmio.");
+				
 				nota.buildNota(cabVO, jdbc);
+			}
 			else
 				return;
 
@@ -49,6 +56,8 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 			cabVO.setProperty("AD_DESCPREMIO", nota.getDescontoPremio());
 			cabVO.setProperty("VLRNOTA", nota.getVlrtot());
 
+		} catch(MGEModelException m) {
+			throw m;
 		} catch (Exception e) {
 			e.printStackTrace();
 			MGEModelException.throwMe(e);

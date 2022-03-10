@@ -31,7 +31,6 @@ public class NotaDAO {
 	private static ResultSet getTotalValue(BigDecimal nunota, JdbcWrapper jdbc) throws Exception {
 		NativeSql sql = new NativeSql(jdbc);
 
-		sql = new NativeSql(jdbc);
 		sql.appendSql("SELECT SUM(COALESCE(VLRTOT, 0)) ");
 		sql.appendSql("FROM TGFITE ");
 		sql.appendSql("WHERE NUNOTA = :NUNOTA");
@@ -47,7 +46,6 @@ public class NotaDAO {
 		BigDecimal descontoPremio = BigDecimal.ZERO;
 		NativeSql sql = new NativeSql(jdbc);
 
-		sql = new NativeSql(jdbc);
 		sql.appendSql("SELECT CASE WHEN PTS.TIPO = 'B' THEN PTS.VALOR ");
 		sql.appendSql("ELSE (PTS.VALOR/100) * :VLRTOT END ");
 		sql.appendSql("FROM AD_TGFPTS PTS JOIN AD_TGFPRE PRM ON PTS.NIVEL = PRM.NIVEL ");
@@ -64,6 +62,23 @@ public class NotaDAO {
 		return descontoPremio;
 	}
 
+	public static int getItemsQuantity(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
+		NativeSql sql = new NativeSql(jdbc);
+		BigDecimal nunota = cabVO.asBigDecimal("NUNOTA");
+		int itemsQty = 0;
+		
+		sql.appendSql("SELECT COUNT(ite.sequencia) ");
+		sql.appendSql("FROM TGFITE ite ");
+		sql.appendSql("WHERE ite.NUNOTA = " + nunota);
+		
+		ResultSet rset = sql.executeQuery();
+		
+		if (rset.next())
+			itemsQty = 0;
+		
+		return itemsQty;
+	}
+	
 	public static BigDecimal getManualDiscount(DynamicVO cabVO) {
 		return cabVO.asBigDecimal("AD_VLRDESC") != null ? cabVO.asBigDecimal("AD_VLRDESC") : BigDecimal.ZERO;
 	}

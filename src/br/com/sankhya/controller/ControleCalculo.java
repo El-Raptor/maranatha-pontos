@@ -7,6 +7,10 @@ public class ControleCalculo {
 	public static boolean validate(BigDecimal codpremio, BigDecimal codtipoper) {
 		return checkReward(codpremio) && checkTOP(codtipoper);
 	}
+	
+	public static boolean haveItemsCeck(int itemsQty) {
+		return itemsQty > 0;
+	}
 
 	private static boolean checkReward(BigDecimal codpremio) {
 		return !codpremio.equals(BigDecimal.ZERO);
@@ -29,9 +33,6 @@ public class ControleCalculo {
 			return true;
 
 		if (codtipoper.equals(new BigDecimal(1111)))
-			return true;
-
-		if (codtipoper.equals(new BigDecimal(1117)))
 			return true;
 
 		if (codtipoper.equals(new BigDecimal(1200)))
