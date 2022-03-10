@@ -15,12 +15,23 @@ public class Nota {
 	private BigDecimal descontoPremio;
 	private BigDecimal codpremio;
 	private BigDecimal codtipoper;
+	private int itemsQty;
+
 
 	public Nota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
 		codpremio = NotaDAO.getRewardId(cabVO);
 		codtipoper = NotaDAO.getCodtipoper(cabVO);
+		itemsQty = NotaDAO.getItemsQuantity(cabVO, jdbc);
 	}
 
+	public int getItensQty() {
+		return itemsQty;
+	}
+	
+	public void setItensQty(int itensQty) {
+		this.itemsQty = itensQty;
+	}
+	
 	public BigDecimal getVlrdesctot() {
 		return vlrdesctot;
 	}
@@ -83,7 +94,9 @@ public class Nota {
 		setDescontoPremio(NotaDAO.getDiscount(this.codpremio, vlrtot, jdbc));
 		setVlrdesctot(descontoPremio.add(adVlrdesc));
 		setPercdesc(vlrdesctot.divide(vlrtot, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
-
-		setVlrtot(vlrtot.subtract(vlrdesctot));
+		setVlrtot(vlrtot.subtract(vlrdesctot));	
 	}
+	
+	//TODO: Método que calcula os impostos.
+	//TODO: Método que verifica se o valor de desconto é maior q o valor da nota após impostos.
 }
