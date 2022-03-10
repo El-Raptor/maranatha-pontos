@@ -1,5 +1,6 @@
 package br.com.sankhya;
 
+import br.com.sankhya.controller.CalculoImposto;
 import br.com.sankhya.controller.ControleCalculo;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.core.JapeSession;
@@ -17,7 +18,7 @@ import br.com.sankhya.modelcore.MGEModelException;
  * 
  * @author Felipe S. Lopes (felipe.lopes@sankhya.com.br)
  * @since 2022-02-15
- * @version 0.1
+ * @version 1.1.0
  * 
  */
 public class BotaoCalculaDesconto implements EventoProgramavelJava {
@@ -55,6 +56,8 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 			cabVO.setProperty("PERCDESC", nota.getPercdesc());
 			cabVO.setProperty("AD_DESCPREMIO", nota.getDescontoPremio());
 			cabVO.setProperty("VLRNOTA", nota.getVlrtot());
+			
+			CalculoImposto.recalcular(cabVO);
 
 		} catch(MGEModelException m) {
 			throw m;
