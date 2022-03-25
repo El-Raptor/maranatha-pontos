@@ -8,7 +8,7 @@ public class ControleCalculo {
 		return checkReward(codpremio) && checkTOP(codtipoper);
 	}
 	
-	public static boolean haveItemsCeck(int itemsQty) {
+	public static boolean haveItemsCheck(int itemsQty) {
 		return itemsQty > 0;
 	}
 

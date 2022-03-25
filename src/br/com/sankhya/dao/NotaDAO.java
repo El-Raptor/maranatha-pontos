@@ -74,7 +74,7 @@ public class NotaDAO {
 		ResultSet rset = sql.executeQuery();
 		
 		if (rset.next())
-			itemsQty = 0;
+			itemsQty = rset.getInt(1);
 		
 		return itemsQty;
 	}
@@ -85,6 +85,10 @@ public class NotaDAO {
 
 	public static BigDecimal getCodtipoper(DynamicVO cabVO) {
 		return cabVO.asBigDecimal("CODTIPOPER");
+	}
+	
+	public static BigDecimal getNunota(DynamicVO cabVO) {
+		return cabVO.asBigDecimal("NUNOTA");
 	}
 
 }

@@ -1,6 +1,5 @@
 package br.com.sankhya;
 
-import br.com.sankhya.controller.CalculoImposto;
 import br.com.sankhya.controller.ControleCalculo;
 import br.com.sankhya.extensions.eventoprogramavel.EventoProgramavelJava;
 import br.com.sankhya.jape.core.JapeSession;
@@ -8,6 +7,7 @@ import br.com.sankhya.jape.core.JapeSession.SessionHandle;
 import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.event.PersistenceEvent;
 import br.com.sankhya.jape.event.TransactionContext;
+//import br.com.sankhya.jape.sql.NativeSql;
 import br.com.sankhya.jape.vo.DynamicVO;
 import br.com.sankhya.model.Nota;
 import br.com.sankhya.modelcore.MGEModelException;
@@ -29,6 +29,14 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 
 	@Override
 	public void beforeUpdate(PersistenceEvent persistEvent) throws Exception {
+
+		/*
+		 * String name = persistEvent.getTargetDAO().getEntityName(); boolean teste =
+		 * true;
+		 * 
+		 * if (teste) throw new MGEModelException(name);
+		 */
+
 		DynamicVO cabVO = (DynamicVO) persistEvent.getVo();
 
 		SessionHandle hnd = null;
@@ -43,23 +51,23 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 			if (ControleCalculo.validate(nota.getCodpremio(), nota.getCodtipoper())) {
 				/* Verifica se tem pelo menos um item selecionado antes de continuar */
 				/* a execução do código. */
-				if (!ControleCalculo.haveItemsCeck(nota.getItensQty()))
-					throw new MGEModelException("Por favor! Selecione pelo menos um item"
+				if (!ControleCalculo.haveItemsCheck(nota.getItensQty()))
+					throw new MGEModelException(nota.getCodpremio() + " Por favor! Selecione pelo menos um item"
 							+ " antes de selecionar o prêmio.");
-				
+
 				nota.buildNota(cabVO, jdbc);
-			}
-			else
+			} else
 				return;
 
 			cabVO.setProperty("VLRDESCTOT", nota.getVlrdesctot());
 			cabVO.setProperty("PERCDESC", nota.getPercdesc());
 			cabVO.setProperty("AD_DESCPREMIO", nota.getDescontoPremio());
-			cabVO.setProperty("VLRNOTA", nota.getVlrtot());
-			
-			CalculoImposto.recalcular(cabVO);
+			//cabVO.setProperty("VLRNOTA", nota.getVlrtot());
+			//cabVO.setProperty("BASEICMS", nota.getBaseicms());
 
-		} catch(MGEModelException m) {
+			//calculaImposto(jdbc, nota, cabVO);
+
+		} catch (MGEModelException m) {
 			throw m;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -90,4 +98,15 @@ public class BotaoCalculaDesconto implements EventoProgramavelJava {
 	public void beforeCommit(TransactionContext paramTransactionContext) throws Exception {
 	}
 
+	/*private void calculaImposto(JdbcWrapper jdbc, Nota nota, DynamicVO cabVO) throws Exception {
+		NativeSql sql = new NativeSql(jdbc);
+
+		sql.appendSql("UPDATE TGFDIN ");
+		sql.appendSql("SET BASE = " + nota.getVlrtot());
+		sql.appendSql(", BASERED = " + nota.getVlrtot());
+		sql.appendSql(", VALOR = " + cabVO.asBigDecimal("VLRICMS"));
+		sql.appendSql(" WHERE NUNOTA = " + nota.getNunota());
+
+		sql.executeUpdate();
+	}*/
 }

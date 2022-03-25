@@ -8,6 +8,7 @@ import br.com.sankhya.jape.dao.JdbcWrapper;
 import br.com.sankhya.jape.vo.DynamicVO;
 
 public class Nota {
+	private BigDecimal nunota;
 	private BigDecimal vlrdesctot;
 	private BigDecimal percdesc;
 	private BigDecimal adVlrdesc;
@@ -15,15 +16,27 @@ public class Nota {
 	private BigDecimal descontoPremio;
 	private BigDecimal codpremio;
 	private BigDecimal codtipoper;
+	private BigDecimal baseicms;
 	private int itemsQty;
 
 
 	public Nota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
+		nunota = NotaDAO.getNunota(cabVO);
 		codpremio = NotaDAO.getRewardId(cabVO);
 		codtipoper = NotaDAO.getCodtipoper(cabVO);
 		itemsQty = NotaDAO.getItemsQuantity(cabVO, jdbc);
+		
 	}
 
+	public BigDecimal getNunota() {
+		return nunota;
+	}
+
+	public void setNunota(BigDecimal nunota) {
+		this.nunota = nunota;
+	}
+	
+	
 	public int getItensQty() {
 		return itemsQty;
 	}
@@ -87,16 +100,24 @@ public class Nota {
 	public void setCodtipoper(BigDecimal codtipoper) {
 		this.codtipoper = codtipoper;
 	}
-
+	
+	public BigDecimal getBaseicms() {
+		return baseicms;
+	}
+	
+	public void setBaseicms(BigDecimal baseicms) {
+		this.baseicms = baseicms;
+	}
+	
 	public void buildNota(DynamicVO cabVO, JdbcWrapper jdbc) throws Exception {
 		setAdVlrdesc(NotaDAO.getManualDiscount(cabVO));
 		setVlrtot(NotaDAO.getTotalValue(cabVO, jdbc));
 		setDescontoPremio(NotaDAO.getDiscount(this.codpremio, vlrtot, jdbc));
 		setVlrdesctot(descontoPremio.add(adVlrdesc));
 		setPercdesc(vlrdesctot.divide(vlrtot, 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
-		setVlrtot(vlrtot.subtract(vlrdesctot));	
+		//setVlrtot(vlrtot.subtract(vlrdesctot));
+		//setBaseicms(this.vlrtot);
 	}
-	
-	//TODO: Método que calcula os impostos.
-	//TODO: Método que verifica se o valor de desconto é maior q o valor da nota após impostos.
+
+
 }
